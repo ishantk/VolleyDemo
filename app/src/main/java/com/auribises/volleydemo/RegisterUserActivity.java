@@ -1,9 +1,12 @@
 package com.auribises.volleydemo;
 
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -132,5 +135,24 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             // Replace Toast with Dialog
             Toast.makeText(this,"Please Connect to Internet and Try Again!",Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        menu.add(0,101,0,"All Users");
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if(item.getItemId() == 101) {
+            Intent intent = new Intent(RegisterUserActivity.this, AllUsersActivity.class);
+            startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
