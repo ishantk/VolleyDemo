@@ -35,7 +35,12 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
     StringRequest stringRequest;
     RequestQueue requestQueue;
 
-    String url = "http://www.auribises.com/volley/registeruser.php";
+    boolean updateMode;
+
+    User user;
+
+    String urlInsert = "http://www.auribises.com/volley/registeruser.php";
+    String urlUpdate = "http://www.auribises.com/volley/updateuser.php";
 
     boolean checkInternetConnectivity(){
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
@@ -51,7 +56,20 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
 
         btnRegister = (Button)findViewById(R.id.buttonRegister);
         btnRegister.setOnClickListener(this);
+
+        Intent rcv = getIntent();
+        updateMode = rcv.hasExtra("keyUser");
+
+        if(updateMode){
+            user = (User)rcv.getSerializableExtra("keyUser");
+            eTxtName.setText(user.name);
+            eTxtPhone.setText(user.phone);
+            eTxtEmail.setText(user.email);
+
+            btnRegister.setText("Update User");
+        }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +88,12 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
         //3. ResponseListener (Handles Response from Server)
         //4. ErrorListener (Handles Error from Server)
 
+        String url = "";
+        if(updateMode)
+            url = urlUpdate;
+        else
+            url = urlInsert;
+
         stringRequest = new StringRequest(Request.Method.POST, url,
 
                 new Response.Listener<String>() {
@@ -83,6 +107,9 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
                             String message = jsonObject.getString("message");
 
                             Toast.makeText(RegisterUserActivity.this,message,Toast.LENGTH_LONG).show();
+
+                            if(updateMode)
+                                finish();
 
                             eTxtName.setText("");
                             eTxtPhone.setText("");
@@ -108,6 +135,9 @@ public class RegisterUserActivity extends AppCompatActivity implements View.OnCl
             protected Map<String, String> getParams() throws AuthFailureError {
 
                 HashMap<String,String> map = new HashMap<String, String>();
+
+                if(updateMode)
+                    map.put("id",String.valueOf(user.uid));
 
                 map.put("name",name);
                 map.put("phone",phone);

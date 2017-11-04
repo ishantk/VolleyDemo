@@ -1,7 +1,10 @@
 package com.auribises.volleydemo;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -10,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -21,6 +25,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class AllUsersActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
 
@@ -28,6 +34,7 @@ public class AllUsersActivity extends AppCompatActivity implements AdapterView.O
     RequestQueue requestQueue;
 
     String url = "http://www.auribises.com/volley/retrieveusers.php";
+    String urlDelete = "http://www.auribises.com/volley/deleteuser.php";
 
     ArrayList<User> userList;
     ArrayList<String> userNameList;
@@ -35,6 +42,9 @@ public class AllUsersActivity extends AppCompatActivity implements AdapterView.O
     ArrayAdapter<String> adapter;
 
     ListView listView;
+
+    User user;
+    int pos;
 
     boolean checkInternetConnectivity(){
         ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
@@ -94,6 +104,7 @@ public class AllUsersActivity extends AppCompatActivity implements AdapterView.O
 
                                 adapter = new ArrayAdapter<String>(AllUsersActivity.this,android.R.layout.simple_list_item_1,userNameList);
                                 listView.setAdapter(adapter);
+                                listView.setOnItemClickListener(AllUsersActivity.this);
                             }else{
                                 Toast.makeText(AllUsersActivity.this,"No Records Found",Toast.LENGTH_LONG).show();
                             }
@@ -117,13 +128,97 @@ public class AllUsersActivity extends AppCompatActivity implements AdapterView.O
 
     }
 
+    void deleteUser(){
+        stringRequest = new StringRequest(Request.Method.POST, urlDelete, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                try {
+
+                    JSONObject jsonObject = new JSONObject(response);
+                    int success = jsonObject.getInt("success");
+
+                    if(success == 1){
+                        Toast.makeText(AllUsersActivity.this,user.name+" Deleted !!",Toast.LENGTH_LONG).show();
+                        userNameList.remove(pos);
+                        userList.remove(pos);
+                        adapter.notifyDataSetChanged();
+                    }
+
+                }catch (Exception e){
+                    Toast.makeText(AllUsersActivity.this,"Some Exception: "+e,Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(AllUsersActivity.this,"Some Error: "+error,Toast.LENGTH_LONG).show();
+                error.printStackTrace();
+            }
+        })
+
+        {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                HashMap<String,String> map = new HashMap<>();
+                map.put("id",String.valueOf(user.uid));
+                return map;
+            }
+        }
+        ;
+
+        requestQueue.add(stringRequest);
+    }
+
+    void askForDeletion(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete "+user.name);
+        builder.setMessage("Are you Sure ?");
+
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deleteUser();
+            }
+        });
+
+        builder.setNegativeButton("Cancel",null);
+
+        builder.create().show();
+    }
+
     void showOptions(){
-        //...
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String items[] = new String[]{"Update", "Delete", "View"};
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                switch (i){
+                    case 0:
+                        Intent intent = new Intent(AllUsersActivity.this,RegisterUserActivity.class);
+                        intent.putExtra("keyUser",user);
+                        startActivity(intent);
+                        break;
+
+                    case 1:
+                        askForDeletion();
+                        break;
+
+                    case 2:
+
+                        break;
+                }
+            }
+        });
+        builder.create().show();
     }
 
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        User user = userList.get(i);
+        pos = i;
+        user = userList.get(i);
+        showOptions();
+
     }
 }

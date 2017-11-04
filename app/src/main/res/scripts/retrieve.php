@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ERROR|E_PARSE);
+
 $servername = "localhost";
 $username = "kishant_testdb";
 $password = "kishant_testdb";
