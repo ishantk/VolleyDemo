@@ -10,9 +10,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.auribises.englishterminal.R;
-import com.auribises.englishterminal.activities.HomeActivity;
-import com.auribises.englishterminal.helper.Utility;
 import com.auribises.volleydemo.R;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
